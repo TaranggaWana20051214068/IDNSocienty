@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>IDN Society - Cooking Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #00ff88;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ff88;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            background: #363636;
+            border: 1px solid #444;
+            color: #fff;
+        }
+
+        .checkbox-group {
+            margin: 10px 0;
+        }
+
+        button {
+            background: #00ff88;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #00cc6a;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #363636;
+            border-radius: 5px;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #444;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cooking Calculator</h1>
+            <a href="index.html" style="color: #00ff88; text-decoration: none;">Back to Main</a>
+        </div>
+
+        <div class="form-group">
+            <!-- <div class="checkbox-group">
+                <input type="checkbox" id="isChef">
+                <label for="isChef">Chef Job (+10% efficiency)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="hasMembership">
+                <label for="hasMembership">Has Membership (+10% efficiency, extended time)</label>
+            </div> -->
+            <!-- <div class="checkbox-group">
+                <input type="checkbox" id="isMainAccount">
+                <label for="isMainAccount">Main Account</label>
+            </div> -->
+            <div class="form-group">
+                <label for="barteringLevel">Bartering Level</label>
+                <input type="number" id="barteringLevel" min="0" max="100" value="100"
+                    placeholder="Enter bartering level (0-100)">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="fishType">Fish Type</label>
+            <select id="fishType">
+                <option value="cod">Cod</option>
+                <option value="salmon">Salmon</option>
+                <option value="tuna">Tuna</option>
+                <option value="trout">Trout</option>
+                <option value="perch">Perch</option>
+                <option value="herring">Herring</option>
+                <option value="sardines">Sardines</option>
+                <option value="lobster">Lobster</option>
+                <option value="crab">Crab</option>
+                <option value="turtle">Turtle</option>
+                <option value="stingray" selected>Stingray</option>
+                <option value="lantern">Lantern</option>
+                <option value="shark">Shark</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="fishAmount">Amount of Fish</label>
+            <input type="number" id="fishAmount" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="marketPrice">Current Market Fish Price (gold)</label>
+            <input type="number" id="marketPrice" value="40" min="0">
+        </div>
+
+        <div class="form-group">
+            <label for="coalPrice">Coal Price (gold)</label>
+            <input type="number" id="coalPrice" value="6" min="0">
+        </div>
+
+        <div class="form-group">
+            <label for="profitShare">Profit Share Rate (Customer:Cook)</label>
+            <select id="profitShare">
+                <option value="70">70:30</option>
+                <option value="75">75:25</option>
+                <option value="80">80:20</option>
+                <option value="custom">Custom</option>
+            </select>
+            <div id="customRateDiv" style="display: none; margin-top: 10px;">
+                <input type="number" id="customRate" min="0" max="100" placeholder="Enter customer's share (%)">
+            </div>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="includesCoal" checked>
+            <label for="includesCoal">Customer Provides Coal</label>
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const FISH_PRICES = {
+            cod: { vendor: 2, cooked: 2 },
+            salmon: { vendor: 3, cooked: 4 },
+            tuna: { vendor: 4, cooked: 6 },
+            trout: { vendor: 5, cooked: 11 },
+            perch: { vendor: 6, cooked: 13 },
+            herring: { vendor: 7, cooked: 15 },
+            sardines: { vendor: 8, cooked: 20 },
+            lobster: { vendor: 14, cooked: 25 },
+            crab: { vendor: 16, cooked: 32 },
+            turtle: { vendor: 20, cooked: 45 },
+            stingray: { vendor: 22, cooked: 55 },
+            lantern: { vendor: 32, cooked: 65 },
+            shark: { vendor: 34, cooked: 77 }
+        };
+
+        const COOKING_TIMES = {
+            normal: { main: 120, alt: 80 },
+            membership: { main: 160, alt: 120 }
+        };
+
+        function calculate() {
+            const fishType = document.getElementById('fishType').value;
+            const fishAmount = parseInt(document.getElementById('fishAmount').value);
+            const marketPrice = parseFloat(document.getElementById('marketPrice').value);
+            const coalPrice = parseFloat(document.getElementById('coalPrice').value);
+            const profitShareSelect = document.getElementById('profitShare');
+            const customerShare = profitShareSelect.value === 'custom'
+                ? parseInt(document.getElementById('customRate').value || 70) // default ke 70 jika kosong
+                : parseInt(profitShareSelect.value);
+            const includesCoal = document.getElementById('includesCoal').checked;
+            const barteringLevel = parseInt(document.getElementById('barteringLevel').value) || 0;
+            // Validasi input
+            if (isNaN(fishAmount) || fishAmount <= 0 || isNaN(marketPrice) || marketPrice <= 0 || isNaN(coalPrice) || coalPrice < 0) {
+                alert("Please input valid numbers!");
+                return;
+            }
+
+            const chefShare = 100 - customerShare; // Persentase chef
+            const fishBasePrice = FISH_PRICES[fishType];
+            const barteringBonus = (barteringLevel / 100) * 0.3;
+            const basePrice = FISH_PRICES[fishType].cooked;
+            const priceWithBartering = basePrice * (1 + barteringBonus);
+            const totalCookedValue = fishAmount * priceWithBartering;
+            // Perhitungan biaya dan pajak
+            const rawFishCost = fishAmount * marketPrice;
+            const coalCost = includesCoal ? 0 : fishAmount * coalPrice;
+
+            const customerTax = (rawFishCost + coalCost) * 0.1;
+            const cookTax = totalCookedValue * 0.1;
+
+            // Profit bersih setelah pajak dan biaya
+            const customerProfitBeforeTax = (totalCookedValue * (customerShare / 100)) - customerTax - coalCost;
+            const chefProfitBeforeTax = (totalCookedValue * (chefShare / 100)) - cookTax;
+
+            // Jika hasil negatif, set ke 0
+            const customerProfit = Math.max(customerProfitBeforeTax, 0);
+            const chefProfit = Math.max(chefProfitBeforeTax, 0);
+
+            // Output hasil perhitungan
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+        <div class="result-item">Fish Distribution:</div>
+        <div class="result-item">- Chef's Fish Share: ${fishAmount * (chefShare / 100)} cooked ${fishType}</div>
+        <div class="result-item">- Customer's Fish Share: ${fishAmount * (customerShare / 100)} cooked ${fishType}</div>
+        <div class="result-item">Taxes:</div>
+        <div class="result-item">- Customer's Tax: ${customerTax.toLocaleString()} gold</div>
+        <div class="result-item">- Chef's Tax: ${cookTax.toLocaleString()} gold</div>
+        <div class="result-item">Profit Distribution:</div>
+        <div class="result-item">- Chef's Share: ${chefProfit.toLocaleString()} gold</div>
+        <div class="result-item">- Customer's Share: ${customerProfit.toLocaleString()} gold</div>
+        <div class="result-item">Total Cooked Value: ${totalCookedValue.toLocaleString()} gold</div>
+    `;
+        }
+
+
+
+
+
+        // Handle custom rate selection
+        document.getElementById('profitShare').addEventListener('change', function (e) {
+            const customRateDiv = document.getElementById('customRateDiv');
+            customRateDiv.style.display = e.target.value === 'custom' ? 'block' : 'none';
+        });
+    </script>
+</body>
+
+</html>

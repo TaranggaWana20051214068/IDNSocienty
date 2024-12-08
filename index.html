@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>IDN Society - Hadir Raid Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #00ff88;
+            margin: 0;
+        }
+
+        .header p {
+            color: #888;
+            margin: 10px 0;
+        }
+
+        textarea {
+            width: 95%;
+            background: #363636;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            resize: vertical;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+
+        button {
+            background: #00ff88;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #00cc6a;
+            transform: translateY(-2px);
+        }
+
+        #result,
+        #result2 {
+            margin-top: 20px;
+            padding: 15px;
+            background: #363636;
+            border-radius: 5px;
+            min-height: 50px;
+            word-wrap: break-word;
+            margin: 1rem 0;
+        }
+
+        .section-title {
+            color: #00ff88;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 5px;
+            margin: 20px 0;
+        }
+
+        .challenge-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #444;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .time-input {
+            background: #363636;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .activity-table th,
+        .activity-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        .activity-table th {
+            background: #363636;
+            color: #00ff88;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>IDN Society</h1>
+            <p>Raid Attendance and challange contribution Tool </p>
+            <a href="cooking.html"
+                style="color: #00ff88; text-decoration: none; padding: 5px 10px; border: 2px solid #00ff88; border-radius: 5px;">Cooking
+                Calculator</a>
+
+        </div>
+
+        <h3 class="section-title">Input HTML :</h3>
+        <textarea id="htmlInput" rows="10" placeholder="Paste your raid HTML here..."></textarea>
+        <button onclick="processHTML()">Process Names</button>
+
+
+        <h3 class="section-title">Participant Names:</h3>
+        <div id="result"></div>
+        <button onclick="copyClipBoard()">Copy text</button>
+        <div class="challenge-section">
+            <h3 class="section-title">Challenge Activity Tracker</h3>
+            <div class="time-inputs">
+                <input type="datetime-local" id="startTime" class="time-input">
+                <input type="datetime-local" id="endTime" class="time-input">
+            </div>
+            <button onclick="processChallenge()">Track Activities</button>
+
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Contribution</th>
+                        <th>Quality</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="activityResult"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        // Previous raid processing functions remain the same
+
+        function processChallenge() {
+            const htmlContent = document.getElementById('htmlInput').value;
+            const startTime = new Date(document.getElementById('startTime').value);
+            const endTime = new Date(document.getElementById('endTime').value);
+
+            // Parse activities similar to challenge.py logic
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const activities = [];
+
+            doc.querySelectorAll('li.py-2').forEach(li => {
+                const name = li.querySelector('h3')?.textContent;
+                const contributionText = li.querySelector('p')?.textContent;
+
+                if (contributionText?.includes('Contributed')) {
+                    const contribution = contributionText.split(' ')[1].replace('x', '');
+                    const qualitySpan = li.querySelector('span[class^="quality"]');
+                    const quality = qualitySpan?.className.split(':')[1];
+                    const timeElement = li.querySelector('time');
+
+                    if (timeElement) {
+                        // Add activity processing logic here
+                        activities.push([name, contribution, quality, new Date()]);
+                    }
+                }
+            });
+
+            displayActivities(activities);
+        }
+
+        function displayActivities(activities) {
+            const tbody = document.getElementById('activityResult');
+            tbody.innerHTML = activities.map(activity => {
+                let qualityColor = '';
+                switch (activity[2]?.toLowerCase()) {
+                    case 'refined':
+                        qualityColor = '#3498db'; // Blue
+                        break;
+                    case 'premium':
+                        qualityColor = '#2ecc71'; // Green
+                        break;
+                    case 'epic':
+                        qualityColor = '#e74c3c'; // Red
+                        break;
+                    case 'legendary':
+                        qualityColor = '#f7bd1e'; // gold
+                        break;
+                    default:
+                        qualityColor = '#ffffff'; // White for standard
+                }
+
+                return `
+            <tr>
+                <td>${activity[0]}</td>
+                <td>${activity[1]}</td>
+                <td style="color: ${qualityColor}; font-weight: bold">${activity[2]}</td>
+                <td>${activity[3].toLocaleString()}</td>
+            </tr>
+        `;
+            }).join('');
+        }
+        function copyClipBoard() {
+            const textToCopy = document.getElementById('result').textContent;
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    alert('Text copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+        }
+    </script>
+    <script>
+        function processHTML() {
+            const htmlContent = document.getElementById('htmlInput').value;
+            const names = extractNames(htmlContent);
+            document.getElementById('result').textContent = names;
+        }
+
+        function extractNames(htmlContent) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const links = doc.getElementsByTagName('a');
+            const pattern = /@(\w+)\?/;
+            const names = [];
+
+            Array.from(links).forEach(link => {
+                const href = link.getAttribute('href');
+                if (href) {
+                    const match = href.match(pattern);
+                    if (match) {
+                        names.push(match[1]);
+                    }
+                }
+            });
+            return names.join(', ');
+        }
+    </script>
+</body>
+
+</html>
